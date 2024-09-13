@@ -1,4 +1,4 @@
-package school.sptech;
+package school.sptech.DataBaseConnection;
 
 
 import org.apache.commons.dbcp2.BasicDataSource;

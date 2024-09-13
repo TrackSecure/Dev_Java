@@ -1,7 +1,4 @@
-package school.sptech;
-
-import java.time.LocalDateTime;
-import java.util.Date;
+package school.sptech.Entity;
 
 public class Registro {
     private Integer idRegistro;

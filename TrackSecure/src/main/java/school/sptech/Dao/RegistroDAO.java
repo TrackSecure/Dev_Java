@@ -1,7 +1,9 @@
-package school.sptech;
+package school.sptech.Dao;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import school.sptech.DataBaseConnection.DatabaseConfiguration;
+import school.sptech.Entity.Registro;
 
 import java.util.List;
 

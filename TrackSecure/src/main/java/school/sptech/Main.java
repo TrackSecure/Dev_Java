@@ -1,16 +1,7 @@
 package school.sptech;
 
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import school.sptech.Dao.RegistroDAO;
+import school.sptech.Entity.Registro;
 
 public class Main {
     public static void main(String[] args) {
