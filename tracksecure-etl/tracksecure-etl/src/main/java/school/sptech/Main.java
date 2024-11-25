@@ -12,41 +12,31 @@ import java.io.InputStream;
 import java.util.List;
 
 public class Main implements RequestHandler<S3Event, String> {
-
-    // Criação do cliente S3 para acessar os buckets
     private final AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
-
-    // Bucket de destino para o CSV gerado
-    private static final String DESTINATION_BUCKET = "s3-trusted-lab-tracksecure";
+    private static final String DESTINATION_BUCKET = "trusted-stocks-teste";
 
     @Override
     public String handleRequest(S3Event s3Event, Context context) {
-
-        // Extraímos o nome do bucket de origem e a chave do arquivo JSON
         String sourceBucket = s3Event.getRecords().get(0).getS3().getBucket().getName();
         String sourceKey = s3Event.getRecords().get(0).getS3().getObject().getKey();
-
+        InputStream s3InputStream = s3Client.getObject(sourceBucket, sourceKey).getObjectContent();
         try {
-            // Leitura do arquivo JSON do bucket de origem
-            InputStream s3InputStream = s3Client.getObject(sourceBucket, sourceKey).getObjectContent();
+            if (sourceKey.contains(".json")) {
+                TrackSecureMapper mapper = new TrackSecureMapper();
+                List<TrackSecure> track = mapper.map(s3InputStream);
+                CSVWriter csvWriter = new CSVWriter();
+                ByteArrayOutputStream csvOutputStream = csvWriter.writeCsv(track);
+                InputStream csvInputStream = new ByteArrayInputStream(csvOutputStream.toByteArray());
 
-            // Conversão do JSON para uma lista de objetos Stock usando o Mapper
-            TrackSecureMapper mapper = new TrackSecureMapper();
-            List<TrackSecure> track = mapper.map(s3InputStream);
+                s3Client.putObject(DESTINATION_BUCKET, sourceKey.replace(".json", ".csv"), csvInputStream, null);
+                return "Sucesso no processamento";
+            } else {
+                CSVSplitter csvSplitter = new CSVSplitter();
+                csvSplitter.writeCsv(s3InputStream, DESTINATION_BUCKET, s3Client);
 
-            // Geração do arquivo CSV a partir da lista de Stock usando o CsvWriter
-            CSVWriter csvWriter = new CSVWriter();
-            ByteArrayOutputStream csvOutputStream = csvWriter.writeCsv(track);
-
-            // Converte o ByteArrayOutputStream para InputStream para enviar ao bucket de destino
-            InputStream csvInputStream = new ByteArrayInputStream(csvOutputStream.toByteArray());
-
-            // Envio do CSV para o bucket de destino
-            s3Client.putObject(DESTINATION_BUCKET, sourceKey.replace(".json", ".csv"), csvInputStream, null);
-
-            return "Sucesso no processamento";
+                return "Sucesso no processamento";
+            }
         } catch (Exception e) {
-            // Tratamento de erros e log do contexto em caso de exceção
             context.getLogger().log("Erro: " + e.getMessage());
             return "Erro no processamento";
         }
