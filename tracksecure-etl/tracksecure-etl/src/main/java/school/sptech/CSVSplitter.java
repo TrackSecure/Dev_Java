@@ -8,16 +8,13 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class CSVSplitter {
-    private String linha;
-    private BufferedReader csvReader;
-    private PrintWriter csvWriter;
-
     public void writeCsv(InputStream inputStream, String bucket, AmazonS3 client) throws IOException {
         BufferedReader csvReader = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("Cp1252")));
         ByteArrayOutputStream csvOutputStream = new ByteArrayOutputStream();
         BufferedWriter csvWriter = new BufferedWriter(new OutputStreamWriter(csvOutputStream, StandardCharsets.UTF_8));
         InputStream csvInputStream;
         String nomeArquivo = null;
+        String linha;
 
         for (int i = 1; i <= 93; i++) {
             linha = csvReader.readLine();
