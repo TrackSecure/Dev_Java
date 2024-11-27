@@ -15,11 +15,9 @@ public class CSVSplitter {
     public void writeCsv(InputStream inputStream, String bucket, AmazonS3 client) throws IOException {
         BufferedReader csvReader = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("Cp1252")));
         ByteArrayOutputStream csvOutputStream = new ByteArrayOutputStream();
-        BufferedWriter csvWriterAzul = new BufferedWriter(new OutputStreamWriter(csvOutputStream, StandardCharsets.UTF_8));
-        BufferedWriter csvWriterVerde = null;
-        BufferedWriter csvWriterVermelho = null;
-        BufferedWriter csvWriterPrata = null;
+        BufferedWriter csvWriter = new BufferedWriter(new OutputStreamWriter(csvOutputStream, StandardCharsets.UTF_8));
         InputStream csvInputStream;
+        String nomeArquivo = null;
 
         for (int i = 1; i <= 93; i++) {
             linha = csvReader.readLine();
@@ -31,45 +29,34 @@ public class CSVSplitter {
             linha = linha.replace("¹", "");
             linha = linha.replace("²", "");
             linha = linha.replace("é2", "é");
-            if (i == 36) {
-                csvWriterAzul.flush();
-                csvWriterAzul.close();
-                csvInputStream = new ByteArrayInputStream(csvOutputStream.toByteArray());
-                client.putObject(bucket, "LinhaAzul.csv", csvInputStream, null);
-                csvOutputStream = new ByteArrayOutputStream();
-                csvWriterVerde = new BufferedWriter(new OutputStreamWriter(csvOutputStream, StandardCharsets.UTF_8));
-            } else if (i == 57) {
-                csvWriterVerde.flush();
-                csvWriterVerde.close();
-                csvInputStream = new ByteArrayInputStream(csvOutputStream.toByteArray());
-                client.putObject(bucket, "LinhaVerde.csv", csvInputStream, null);
-                csvOutputStream = new ByteArrayOutputStream();
-                csvWriterVermelho = new BufferedWriter(new OutputStreamWriter(csvOutputStream, StandardCharsets.UTF_8));
-            } else if (i == 81) {
-                csvWriterVermelho.flush();
-                csvWriterVermelho.close();
-                csvInputStream = new ByteArrayInputStream(csvOutputStream.toByteArray());
-                client.putObject(bucket, "LinhaVermelha.csv", csvInputStream, null);
-                csvOutputStream = new ByteArrayOutputStream();
-                csvWriterPrata = new BufferedWriter(new OutputStreamWriter(csvOutputStream, StandardCharsets.UTF_8));
-            } else if (i == 93) {
-                csvWriterPrata.flush();
-                csvWriterPrata.close();
-                csvInputStream = new ByteArrayInputStream(csvOutputStream.toByteArray());
-                client.putObject(bucket, "LinhaPrata.csv", csvInputStream, null);
+            switch (i) {
+                case 36:
+                    nomeArquivo = "LinhaAzul.csv";
+                    break;
+                case 57:
+                    nomeArquivo = "LinhaVerde.csv";
+                    break;
+                case 81:
+                    nomeArquivo = "LinhaVermelha.csv";
+                    break;
+                case 93:
+                    nomeArquivo = "LinhaPrata.csv";
+                    break;
             }
-            if (i > 5 && i < 30) {
-                csvWriterAzul.write(linha + "\n");
-            } else if (i > 35 && i < 51) {
-                csvWriterVerde.write(linha + "\n");
-            } else if (i > 56 && i < 76) {
-                csvWriterVermelho.write(linha + "\n");
-            } else if (i > 80) {
-                csvWriterPrata.write(linha + "\n");
+            if (i == 36 || i == 57 || i == 81 || i == 93) {
+                csvWriter.flush();
+                csvWriter.close();
+                csvInputStream = new ByteArrayInputStream(csvOutputStream.toByteArray());
+                client.putObject(bucket, nomeArquivo, csvInputStream, null);
+                csvOutputStream = new ByteArrayOutputStream();
+                csvWriter = new BufferedWriter(new OutputStreamWriter(csvOutputStream, StandardCharsets.UTF_8));
+            }
+            if ((i > 5 && i < 30) || (i > 35 && i < 51) || (i > 56 && i < 76) || i > 80) {
+                csvWriter.write(linha + "\n");
             }
         }
-        csvWriterPrata.flush();
-        csvWriterPrata.close();
+        csvWriter.flush();
+        csvWriter.close();
         csvReader.close();
     }
 }
